@@ -32,7 +32,7 @@ jobs:
 
       - name: Run
         run: |
-          hyperfine --warmup 1 \
+          hyperfine --warmup 1 --runs 3 \
           'yarn workspace jasmine test' \
           'yarn workspace jest test' \
           'yarn workspace vitest test' \
@@ -56,11 +56,11 @@ jobs:
           # Install dependencies
           yarn install --immutable
       
-      - name: Install bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: canary
+      # - name: Install bun
+      #   uses: oven-sh/setup-bun@v1
+      #   with:
+      #     bun-version: canary
 
       - name: Run
         run: |
-          hyperfine.exe --warmup 1 "yarn workspace jest test" "yarn workspace vitest test" "yarn workspace vitest test --pool=vmThreads" "yarn workspace vitest test --poolOptions.threads.isolate=false" "yarn workspace bun test"
+          ./hyperfine.exe --warmup 1 --runs 3 "yarn workspace jasmine test" "yarn workspace jest test" "yarn workspace vitest test" "yarn workspace vitest test --pool=vmThreads" "yarn workspace vitest test --poolOptions.threads.isolate=false"
