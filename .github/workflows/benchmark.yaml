@@ -5,7 +5,7 @@ on:
     branches:
       - master
 jobs:
-  benchmark:
+  benchmark-ubuntu:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,4 +37,30 @@ jobs:
           'yarn workspace jest test' \
           'yarn workspace vitest test' \
           'yarn workspace vitest test --pool=vmThreads' \
-          'yarn workspace vitest test --poolOptions.threads.isolate=false'
+          'yarn workspace vitest test --poolOptions.threads.isolate=false' \
+          'yarn workspace bun test'
+
+  benchmark-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      
+      - name: Install
+        run: |
+          # Install dependencies
+          yarn install --immutable
+      
+      - name: Install bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: canary
+
+      - name: Run
+        run: |
+          hyperfine.exe --warmup 1 "yarn workspace jest test" "yarn workspace vitest test" "yarn workspace vitest test --pool=vmThreads" "yarn workspace vitest test --poolOptions.threads.isolate=false" "yarn workspace bun test"
