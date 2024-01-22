@@ -28,7 +28,7 @@ jobs:
       - name: Install bun
         uses: oven-sh/setup-bun@v1
         with:
-          bun-version: canary
+          bun-version: latest
 
       - name: Run
         run: |
