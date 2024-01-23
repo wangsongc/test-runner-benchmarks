@@ -1,0 +1,55 @@
+name: Run Benchmarks Single
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '**'
+jobs:
+  benchmark-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Collect Workflow Telemetry
+        uses: catchpoint/workflow-telemetry-action@v1
+      
+      - name: Install
+        run: |
+          # Install dependencies
+          yarn install
+
+          # Install hyperfine
+          wget https://github.com/sharkdp/hyperfine/releases/download/v1.17.0/hyperfine_1.17.0_amd64.deb
+          sudo dpkg -i hyperfine_1.17.0_amd64.deb
+      
+      # - name: Install bun
+      #   uses: oven-sh/setup-bun@v1
+      #   with:
+      #     bun-version: latest
+
+      - name: Run jasmine
+        run: |
+          hyperfine --warmup 1 --runs 3 \
+          'yarn workspace jasmine test'
+      - name: Run jest
+        run: |
+          hyperfine --warmup 1 --runs 3 \
+          'yarn workspace jest test'
+      - name: Run vitest
+        run: |
+          hyperfine --warmup 1 --runs 3 \
+          'yarn workspace vitest test'
+      - name: Run vitest with pool option
+        run: |
+          hyperfine --warmup 1 --runs 3 \
+          'yarn workspace vitest test --pool=vmThreads'
+      - name: Run vitest with isolate
+        run: |
+          hyperfine --warmup 1 --runs 3 \
+          'yarn workspace vitest test --poolOptions.threads.isolate=false'
