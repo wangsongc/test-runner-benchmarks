@@ -3,7 +3,8 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - master
+      - '**'
+  pull_request:
 jobs:
   benchmark-ubuntu:
     runs-on: ubuntu-latest
@@ -15,11 +16,14 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
+
+      - name: Collect Workflow Telemetry
+        uses: catchpoint/workflow-telemetry-action@v1
       
       - name: Install
         run: |
           # Install dependencies
-          yarn install --immutable
+          yarn install
 
           # Install hyperfine
           wget https://github.com/sharkdp/hyperfine/releases/download/v1.17.0/hyperfine_1.17.0_amd64.deb
@@ -37,8 +41,7 @@ jobs:
           'yarn workspace jest test' \
           'yarn workspace vitest test' \
           'yarn workspace vitest test --pool=vmThreads' \
-          'yarn workspace vitest test --poolOptions.threads.isolate=false' \
-          'yarn workspace bun test'
+          'yarn workspace vitest test --poolOptions.threads.isolate=false'
 
   benchmark-windows:
     runs-on: windows-latest
@@ -50,6 +53,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
+
+      - name: Collect Workflow Telemetry
+        uses: catchpoint/workflow-telemetry-action@v1
       
       - name: Install
         run: |
@@ -63,4 +69,4 @@ jobs:
 
       - name: Run
         run: |
-          ./hyperfine.exe --warmup 1 --runs 3 "yarn workspace jasmine test" "yarn workspace jest test" "yarn workspace vitest test" "yarn workspace vitest test --pool=vmThreads" "yarn workspace vitest test --poolOptions.threads.isolate=false"
+          ./hyperfine.exe --warmup 1 --runs 3 "yarn workspace jest test" "yarn workspace vitest test" "yarn workspace vitest test --pool=vmThreads" "yarn workspace vitest test --poolOptions.threads.isolate=false"
