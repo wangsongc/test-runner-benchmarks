@@ -70,3 +70,7 @@ jobs:
         run: |
           hyperfine --warmup ${{ inputs.Warmup }} --runs ${{ inputs.runTimes }} \
           'yarn workspace vitest test --poolOptions.threads.isolate=false'
+
+      - name: Output
+        run: |
+          cat /home/runner/work/_actions/catchpoint/workflow-telemetry-action/v1/dist/proc-tracer/proc-trace.out
