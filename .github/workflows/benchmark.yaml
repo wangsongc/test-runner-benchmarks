@@ -1,10 +1,26 @@
-name: Run Benchmarks
+name: Run Benchmarks Single
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - '**'
   pull_request:
+  workflow_dispatch:
+    inputs:
+      runTimes:
+        description: 'Test run times'
+        required: true
+        default: 1
+        type: choice
+        options:
+        - 1
+        - 5
+        - 10
+      Warmup:
+        description: 'Warmup times'
+        required: true
+        default: 1
+        type: choice
+        options:
+        - 0
+        - 1
+        - 3
 jobs:
   benchmark-ubuntu:
     runs-on: ubuntu-latest
@@ -29,44 +45,28 @@ jobs:
           wget https://github.com/sharkdp/hyperfine/releases/download/v1.17.0/hyperfine_1.17.0_amd64.deb
           sudo dpkg -i hyperfine_1.17.0_amd64.deb
       
-      - name: Install bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Run
-        run: |
-          hyperfine --warmup 1 --runs 3 \
-          'yarn workspace jasmine test' \
-          'yarn workspace jest test' \
-          'yarn workspace vitest test' \
-          'yarn workspace vitest test --pool=vmThreads' \
-          'yarn workspace vitest test --poolOptions.threads.isolate=false'
-
-  benchmark-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
-
-      - name: Collect Workflow Telemetry
-        uses: catchpoint/workflow-telemetry-action@v1
-      
-      - name: Install
-        run: |
-          # Install dependencies
-          yarn install --immutable
-      
       # - name: Install bun
       #   uses: oven-sh/setup-bun@v1
       #   with:
-      #     bun-version: canary
+      #     bun-version: latest
 
-      - name: Run
+      - name: Run jasmine
         run: |
-          ./hyperfine.exe --warmup 1 --runs 3 "yarn workspace jest test" "yarn workspace vitest test" "yarn workspace vitest test --pool=vmThreads" "yarn workspace vitest test --poolOptions.threads.isolate=false"
+          hyperfine --warmup ${{ inputs.Warmup }} --runs  ${{ inputs.runTimes }} \
+          'yarn workspace jasmine test'
+      - name: Run jest
+        run: |
+          hyperfine --warmup ${{ inputs.Warmup }} --runs ${{ inputs.runTimes }} \
+          'yarn workspace jest test'
+      - name: Run vitest
+        run: |
+          hyperfine --warmup ${{ inputs.Warmup }} --runs ${{ inputs.runTimes }} \
+          'yarn workspace vitest test'
+      - name: Run vitest with pool option
+        run: |
+          hyperfine --warmup ${{ inputs.Warmup }} --runs ${{ inputs.runTimes }} \
+          'yarn workspace vitest test --pool=vmThreads'
+      - name: Run vitest with isolate
+        run: |
+          hyperfine --warmup ${{ inputs.Warmup }} --runs ${{ inputs.runTimes }} \
+          'yarn workspace vitest test --poolOptions.threads.isolate=false'
